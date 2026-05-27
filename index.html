@@ -397,9 +397,9 @@
 
 <!-- ── Header ─────────────────────────────────────────────── -->
 <header class="header">
-  <span class="header-title">Ajar Retreats</span>
+  <span class="header-title">ajar Retreats</span>
   <span class="header-sep">·</span>
-  <span class="header-sub">Pricing configuration tool</span>
+  <span class="header-sub">Financial Projections</span>
 </header>
 
 <!-- ── Phase switcher ─────────────────────────────────────── -->
@@ -571,19 +571,18 @@
 
   // ── Data ──────────────────────────────────────────────────
   const COST_LINES = [
-    { name: 'Venue hire (3 nights)',   market: 2160 },
-    { name: 'Food & beverage',          market: 1620 },
-    { name: 'Activities & excursions',  market:  820 },
-    { name: 'Photography / content',    market:  400 },
-    { name: 'Facilitator / speaker',    market:  700 },
-    { name: 'Transport & operations',   market:  920 },
+    { name: 'Venue hire (2 nights)',   market: 2400 },
+    { name: 'Food & beverage',          market: 2400 },
+    { name: 'Activities',               market: 1200 },
+    { name: 'Facilitator / speaker',    market: 1400 },
+    { name: 'Transport & operations',   market:  800 },
   ];
   const MARKET_TOTAL = COST_LINES.reduce((s, c) => s + c.market, 0);
 
   const DEFAULTS = {
-    1: { ticket: 800,  guests: 12, retreats: 4, favor: 20, partner: 0,     overhead: 5200, target: 15000 },
-    2: { ticket: 1000, guests: 12, retreats: 6, favor: 10, partner: 0,     overhead: 5200, target: 25000 },
-    3: { ticket: 1100, guests: 12, retreats: 6, favor: 10, partner: 10000, overhead: 5200, target: 35000 },
+    1: { ticket: 900,  guests: 12, retreats: 4, favor: 25, partner: 0,     overhead: 2500,  target: 15000 },
+    2: { ticket: 1000, guests: 12, retreats: 6, favor: 20, partner: 10000, overhead: 10000, target: 25000 },
+    3: { ticket: 1200, guests: 12, retreats: 8, favor: 10, partner: 20000, overhead: 20000, target: 35000 },
   };
 
   // ── Helpers ───────────────────────────────────────────────
