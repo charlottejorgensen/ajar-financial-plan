@@ -35,6 +35,9 @@
       font-size: 14px;
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
 
     /* ── Header ─────────────────────────────────────── */
@@ -120,6 +123,7 @@
       display: grid;
       grid-template-columns: 360px 1fr;
       border-bottom: 1px solid var(--border);
+      flex: 1;
     }
     @media (max-width: 860px) {
       .workspace { grid-template-columns: 1fr; }
@@ -320,17 +324,37 @@
     .mc.s-red .mc-value         { color: var(--red); }
     .mc.s-red .mc-sub           { color: #B91C1C; }
 
-    /* ── Cost table ──────────────────────────────────── */
-    .cost-section { padding: 2rem 2.5rem 2.75rem; }
+    /* ── Cost table dropdown ─────────────────────────── */
+    .cost-details { border-top: 1px solid var(--border); }
 
-    .cost-section-title {
+    .cost-details summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2.5rem;
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
       font-size: 0.65rem;
       font-weight: 600;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--muted);
-      margin-bottom: 1.4rem;
+      transition: color .12s;
     }
+    .cost-details summary::-webkit-details-marker { display: none; }
+    .cost-details summary:hover { color: var(--text); }
+    .cost-details summary::after {
+      content: '+';
+      font-size: 1rem;
+      font-weight: 300;
+      letter-spacing: 0;
+      text-transform: none;
+      transition: opacity .15s;
+    }
+    .cost-details[open] summary::after { content: '−'; }
+
+    .cost-section { padding: 0 2.5rem 2.5rem; }
 
     .cost-table { width: 100%; border-collapse: collapse; }
 
@@ -542,8 +566,9 @@
 </div>
 
 <!-- ── Cost breakdown table ────────────────────────────────── -->
-<div class="cost-section">
-  <p class="cost-section-title">Cost breakdown — per retreat</p>
+<details class="cost-details">
+  <summary>Cost breakdown — per retreat</summary>
+  <div class="cost-section">
   <table class="cost-table">
     <thead>
       <tr>
@@ -563,7 +588,8 @@
       </tr>
     </tfoot>
   </table>
-</div>
+  </div>
+</details>
 
 <script>
 (function () {
