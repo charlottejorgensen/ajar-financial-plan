@@ -81,6 +81,39 @@
       color: var(--bg);
       border-color: var(--text);
     }
+    /* Dot on phases that have custom (non-default) settings */
+    .phase-btn.custom::after {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: currentColor;
+      margin-left: 6px;
+      opacity: 0.5;
+      vertical-align: middle;
+      margin-bottom: 1px;
+    }
+
+    /* Reset to defaults link */
+    .reset-btn {
+      margin-left: auto;
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 0.75rem;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0.2rem 0;
+      transition: color .12s, opacity .12s;
+      white-space: nowrap;
+      text-decoration: underline;
+      text-decoration-color: transparent;
+      text-underline-offset: 2px;
+      transition: color .12s, text-decoration-color .12s;
+    }
+    .reset-btn:hover { color: var(--text); text-decoration-color: var(--border); }
+    .reset-btn:disabled { opacity: 0; pointer-events: none; }
 
     /* ── Two-column workspace ────────────────────────── */
     .workspace {
@@ -374,6 +407,7 @@
   <button class="phase-btn active" data-phase="1">Phase 1 — Validate</button>
   <button class="phase-btn"        data-phase="2">Phase 2 — Launch</button>
   <button class="phase-btn"        data-phase="3">Phase 3 — Scale</button>
+  <button class="reset-btn" id="reset-btn" disabled>Reset to defaults</button>
 </div>
 
 <!-- ── Workspace ──────────────────────────────────────────── -->
@@ -544,9 +578,9 @@
     { name: 'Facilitator / speaker',    market:  700 },
     { name: 'Transport & operations',   market:  920 },
   ];
-  const MARKET_TOTAL = COST_LINES.reduce((s, c) => s + c.market, 0); // 6620
+  const MARKET_TOTAL = COST_LINES.reduce((s, c) => s + c.market, 0);
 
-  const PHASES = {
+  const DEFAULTS = {
     1: { ticket: 800,  guests: 10, retreats: 2, favor: 45, partner: 0,    overhead: 5200, target: 15000 },
     2: { ticket: 950,  guests: 12, retreats: 4, favor: 25, partner: 0,    overhead: 5200, target: 25000 },
     3: { ticket: 1100, guests: 14, retreats: 5, favor: 10, partner: 8000, overhead: 5200, target: 35000 },
@@ -559,12 +593,45 @@
 
   function updateSliderFill(el) {
     const pct = ((+el.value - +el.min) / (+el.max - +el.min)) * 100;
-    el.style.background =
-      `linear-gradient(to right, #1A1A1A ${pct}%, #E0DDD8 ${pct}%)`;
+    el.style.background = `linear-gradient(to right, #1A1A1A ${pct}%, #E0DDD8 ${pct}%)`;
   }
 
+  // ── Per-phase localStorage persistence ───────────────────
+  const STORAGE_KEY = 'ajar-phase-settings';
+
+  function loadAllSaved() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+    catch { return {}; }
+  }
+
+  function savePhase(phase, settings) {
+    const all = loadAllSaved();
+    all[phase] = settings;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+  }
+
+  function clearPhase(phase) {
+    const all = loadAllSaved();
+    delete all[phase];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+  }
+
+  function getPhaseSettings(phase) {
+    return loadAllSaved()[phase] || { ...DEFAULTS[phase] };
+  }
+
+  function isModified(phase) {
+    const saved = loadAllSaved()[phase];
+    if (!saved) return false;
+    const def = DEFAULTS[phase];
+    return Object.keys(def).some(k => +saved[k] !== def[k]);
+  }
+
+  // ── Phase state ───────────────────────────────────────────
+  let currentPhase = '1';
+
   // ── Read inputs ───────────────────────────────────────────
-  function vals() {
+  function captureInputs() {
     return {
       ticket:   +$('n-ticket').value   || 0,
       guests:   +$('n-guests').value   || 0,
@@ -576,9 +643,33 @@
     };
   }
 
+  // ── Apply a settings object to all inputs ─────────────────
+  function applySettings(p) {
+    function setSlider(sid, nid, did, dfn, val) {
+      $(sid).value = val; $(nid).value = val;
+      $(did).textContent = dfn(val);
+      updateSliderFill($(sid));
+    }
+    setSlider('s-ticket',   'n-ticket',   'd-ticket',   v => '€' + Math.round(v).toLocaleString('en-GB'), p.ticket);
+    setSlider('s-guests',   'n-guests',   'd-guests',   v => v.toString(), p.guests);
+    setSlider('s-retreats', 'n-retreats', 'd-retreats', v => v.toString(), p.retreats);
+    setSlider('s-favor',    'n-favor',    'd-favor',    v => v + '%', p.favor);
+    $('n-partner').value  = p.partner;
+    $('n-overhead').value = p.overhead;
+    $('n-target').value   = p.target;
+  }
+
+  // ── Update modified-dot and reset button state ────────────
+  function updateIndicators() {
+    document.querySelectorAll('.phase-btn').forEach(btn => {
+      btn.classList.toggle('custom', isModified(btn.dataset.phase));
+    });
+    $('reset-btn').disabled = !isModified(currentPhase);
+  }
+
   // ── Calculate & render ────────────────────────────────────
   function calculate() {
-    const v = vals();
+    const v = captureInputs();
     const favorMult = 1 - v.favor / 100;
 
     const revPerRetreat  = v.guests * v.ticket;
@@ -589,28 +680,22 @@
     const annualNet      = annualGross - (costPerRetreat * v.retreats) - v.overhead + v.partner;
     const ltv            = v.ticket * 1.5 * 1.8;
 
-    // Min retreats to hit income target
     let minTxt = '—', minSub = '';
     if (contrib > 0) {
       const raw = (v.target + v.overhead - v.partner) / contrib;
       if (raw <= 0) {
-        minTxt = '0';
-        minSub = 'Partnership revenue covers target';
+        minTxt = '0'; minSub = 'Partnership revenue covers target';
       } else {
         const n = Math.ceil(raw);
         minTxt = n.toString();
-        if (n <= v.retreats) {
-          minSub = 'Achievable at current plan';
-        } else {
-          const extra = n - v.retreats;
-          minSub = extra + ' more retreat' + (extra > 1 ? 's' : '') + ' than planned';
-        }
+        minSub = n <= v.retreats
+          ? 'Achievable at current plan'
+          : (n - v.retreats) + ' more retreat' + (n - v.retreats > 1 ? 's' : '') + ' than planned';
       }
     } else {
       minSub = contrib < 0 ? 'Costs exceed revenue' : 'No contribution margin';
     }
 
-    // Net card status
     const card = $('m-netCard');
     card.className = 'mc wide';
     let netSub = '';
@@ -627,7 +712,6 @@
       }
     }
 
-    // Update metric cards
     $('m-revPerRetreat').textContent  = fmt(revPerRetreat);
     $('m-costPerRetreat').textContent = fmt(costPerRetreat);
     $('m-costSub').textContent        = v.favor + '% reduction applied';
@@ -640,7 +724,6 @@
     $('m-netSub').textContent         = netSub;
     $('m-ltv').textContent            = fmt(ltv);
 
-    // Update cost table
     const tbody = $('cost-body');
     tbody.innerHTML = '';
     let totalFavors = 0;
@@ -661,15 +744,18 @@
     });
     $('t-market').textContent = fmt(MARKET_TOTAL);
     $('t-favors').textContent = fmt(totalFavors);
+
+    // Persist and refresh indicators after every change
+    savePhase(currentPhase, v);
+    updateIndicators();
   }
 
   // ── Slider ↔ number sync ──────────────────────────────────
   const SLIDER_CONFIGS = [
-    // [sliderId, numId, displayId, displayFn]
-    ['s-ticket',  'n-ticket',   'd-ticket',   v => '€' + Math.round(v).toLocaleString('en-GB')],
-    ['s-guests',  'n-guests',   'd-guests',   v => v.toString()],
-    ['s-retreats','n-retreats', 'd-retreats', v => v.toString()],
-    ['s-favor',   'n-favor',    'd-favor',    v => v + '%'],
+    ['s-ticket',   'n-ticket',   'd-ticket',   v => '€' + Math.round(v).toLocaleString('en-GB')],
+    ['s-guests',   'n-guests',   'd-guests',   v => v.toString()],
+    ['s-retreats', 'n-retreats', 'd-retreats', v => v.toString()],
+    ['s-favor',    'n-favor',    'd-favor',    v => v + '%'],
   ];
 
   SLIDER_CONFIGS.forEach(([sid, nid, did, dfn]) => {
@@ -691,11 +777,8 @@
       nu.value = clamped;
       sync('num', clamped);
     });
-
-    updateSliderFill(sl);
   });
 
-  // ── Standalone currency inputs ────────────────────────────
   ['n-partner', 'n-overhead', 'n-target'].forEach(id => {
     $(id).addEventListener('input', calculate);
     $(id).addEventListener('change', calculate);
@@ -704,31 +787,27 @@
   // ── Phase switcher ────────────────────────────────────────
   document.querySelectorAll('.phase-btn').forEach(btn => {
     btn.addEventListener('click', () => {
+      if (btn.dataset.phase === currentPhase) return;
+      // Save current phase before leaving it
+      savePhase(currentPhase, captureInputs());
+      currentPhase = btn.dataset.phase;
       document.querySelectorAll('.phase-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-
-      const p = PHASES[btn.dataset.phase];
-
-      function setSlider(sid, nid, did, dfn, val) {
-        $(sid).value = val; $(nid).value = val;
-        $(did).textContent = dfn(val);
-        updateSliderFill($(sid));
-      }
-
-      setSlider('s-ticket',   'n-ticket',   'd-ticket',   v => '€' + v.toLocaleString('en-GB'), p.ticket);
-      setSlider('s-guests',   'n-guests',   'd-guests',   v => v.toString(), p.guests);
-      setSlider('s-retreats', 'n-retreats', 'd-retreats', v => v.toString(), p.retreats);
-      setSlider('s-favor',    'n-favor',    'd-favor',    v => v + '%', p.favor);
-
-      $('n-partner').value  = p.partner;
-      $('n-overhead').value = p.overhead;
-      $('n-target').value   = p.target;
-
+      // Load saved (or default) settings for the new phase
+      applySettings(getPhaseSettings(currentPhase));
       calculate();
     });
   });
 
-  // ── Initial render ────────────────────────────────────────
+  // ── Reset current phase to defaults ──────────────────────
+  $('reset-btn').addEventListener('click', () => {
+    clearPhase(currentPhase);
+    applySettings({ ...DEFAULTS[currentPhase] });
+    calculate();
+  });
+
+  // ── Init: load saved settings for phase 1 ────────────────
+  applySettings(getPhaseSettings(currentPhase));
   calculate();
 
 }());
