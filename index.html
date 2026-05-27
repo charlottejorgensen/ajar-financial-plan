@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajar — Retreat Pricing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #F7F5F1;
+      --surface:      #FFFFFF;
+      --text:         #1A1A1A;
+      --muted:        #8C8884;
+      --border:       #E0DDD8;
+      --border-focus: #1A1A1A;
+      --green:        #1B5E38;
+      --green-bg:     #EDFAF2;
+      --green-bd:     #AEDEC0;
+      --amber:        #884400;
+      --amber-bg:     #FFF8ED;
+      --amber-bd:     #F5C97A;
+      --red:          #991B1B;
+      --red-bg:       #FFF2F2;
+      --red-bd:       #FBBBBB;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ─────────────────────────────────────── */
+    .header {
+      display: flex;
+      align-items: baseline;
+      gap: 0.9rem;
+      padding: 1.6rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .header-title { font-size: 0.9rem; font-weight: 600; letter-spacing: -0.01em; }
+    .header-sep   { color: var(--border); font-size: 0.9rem; }
+    .header-sub   { font-size: 0.8rem; color: var(--muted); }
+
+    /* ── Phase switcher ──────────────────────────────── */
+    .phases {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 1.1rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .phase-btn {
+      padding: 0.4rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      background: transparent;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color .12s, background .12s, border-color .12s;
+      white-space: nowrap;
+      letter-spacing: 0.01em;
+    }
+    .phase-btn:hover:not(.active) {
+      color: var(--text);
+      border-color: #C5C2BC;
+    }
+    .phase-btn.active {
+      background: var(--text);
+      color: var(--bg);
+      border-color: var(--text);
+    }
+
+    /* ── Two-column workspace ────────────────────────── */
+    .workspace {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      border-bottom: 1px solid var(--border);
+    }
+    @media (max-width: 860px) {
+      .workspace { grid-template-columns: 1fr; }
+      .inputs-col { border-right: none !important; border-bottom: 1px solid var(--border); }
+    }
+
+    /* ── Input column ────────────────────────────────── */
+    .inputs-col {
+      padding: 2rem 2.5rem;
+      border-right: 1px solid var(--border);
+    }
+    .col-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.8rem;
+    }
+    .input-group { margin-bottom: 1.55rem; }
+    .ig-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.55rem;
+    }
+    .ig-label { font-size: 0.82rem; font-weight: 500; }
+    .ig-val   { font-size: 0.82rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    /* Range slider */
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 1;
+      height: 4px;
+      border-radius: 99px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      background: var(--text);
+      cursor: pointer;
+      border: 2.5px solid var(--bg);
+      box-shadow: 0 1px 4px rgba(0,0,0,.2);
+      transition: transform .1s;
+    }
+    input[type=range]:active::-webkit-slider-thumb { transform: scale(1.12); }
+    input[type=range]::-moz-range-thumb {
+      width: 17px; height: 17px;
+      border-radius: 50%;
+      background: var(--text);
+      cursor: pointer;
+      border: 2.5px solid var(--bg);
+      box-shadow: 0 1px 4px rgba(0,0,0,.2);
+    }
+    input[type=range]::-moz-range-progress {
+      background: var(--text);
+      height: 4px;
+      border-radius: 99px;
+    }
+
+    /* Number input (compact, for slider rows) */
+    .num-input {
+      width: 76px;
+      padding: 0.35rem 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 500;
+      text-align: right;
+      outline: none;
+      -moz-appearance: textfield;
+      transition: border-color .12s, box-shadow .12s;
+    }
+    .num-input::-webkit-outer-spin-button,
+    .num-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .num-input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 2px rgba(26,26,26,.07);
+    }
+
+    /* Currency input (full-width, with € prefix) */
+    .cur-wrap {
+      display: flex;
+      align-items: stretch;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      overflow: hidden;
+      transition: border-color .12s, box-shadow .12s;
+    }
+    .cur-wrap:focus-within {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 2px rgba(26,26,26,.07);
+    }
+    .cur-pre {
+      padding: 0.5rem 0.65rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--muted);
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      user-select: none;
+    }
+    .cur-input {
+      flex: 1;
+      min-width: 0;
+      padding: 0.5rem 0.75rem;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 500;
+      outline: none;
+      -moz-appearance: textfield;
+    }
+    .cur-input::-webkit-outer-spin-button,
+    .cur-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.6rem 0;
+    }
+
+    /* ── Output column ───────────────────────────────── */
+    .output-col { padding: 2rem 2.5rem; }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.8rem;
+    }
+    @media (max-width: 560px) {
+      .metrics-grid { grid-template-columns: 1fr; }
+    }
+
+    .mc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.2rem 0.9rem;
+    }
+    .mc.wide { grid-column: 1 / -1; }
+
+    .mc-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+    .mc-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      color: var(--text);
+      line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+    }
+    .mc-sub {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+      line-height: 1.4;
+    }
+
+    /* Net contribution states */
+    .mc.s-green                 { background: var(--green-bg); border-color: var(--green-bd); }
+    .mc.s-green .mc-label,
+    .mc.s-green .mc-value       { color: var(--green); }
+    .mc.s-green .mc-sub         { color: #2D7A50; }
+
+    .mc.s-amber                 { background: var(--amber-bg); border-color: var(--amber-bd); }
+    .mc.s-amber .mc-label,
+    .mc.s-amber .mc-value       { color: var(--amber); }
+    .mc.s-amber .mc-sub         { color: #9A5500; }
+
+    .mc.s-red                   { background: var(--red-bg); border-color: var(--red-bd); }
+    .mc.s-red .mc-label,
+    .mc.s-red .mc-value         { color: var(--red); }
+    .mc.s-red .mc-sub           { color: #B91C1C; }
+
+    /* ── Cost table ──────────────────────────────────── */
+    .cost-section { padding: 2rem 2.5rem 2.75rem; }
+
+    .cost-section-title {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.4rem;
+    }
+
+    .cost-table { width: 100%; border-collapse: collapse; }
+
+    .cost-table th {
+      padding: 0 0.75rem 0.6rem;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      white-space: nowrap;
+    }
+    .cost-table th.r { text-align: right; }
+
+    .cost-table td {
+      padding: 0.85rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.82rem;
+      vertical-align: middle;
+    }
+    .cost-table tfoot td {
+      padding: 0.85rem 0.75rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-top: 1px solid var(--border);
+      border-bottom: none;
+    }
+
+    .td-name   { font-weight: 500; }
+    .td-market { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .td-favors { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .td-bar    { width: 150px; padding-left: 1.25rem; }
+
+    .bar-track {
+      height: 5px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      background: var(--text);
+      border-radius: 99px;
+      transition: width .3s cubic-bezier(.4,0,.2,1);
+    }
+    .bar-note {
+      font-size: 0.67rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+    }
+
+    @media (max-width: 640px) {
+      .header, .phases, .inputs-col, .output-col, .cost-section {
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+      }
+      .td-bar { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────── -->
+<header class="header">
+  <span class="header-title">Ajar Retreats</span>
+  <span class="header-sep">·</span>
+  <span class="header-sub">Pricing configuration tool</span>
+</header>
+
+<!-- ── Phase switcher ─────────────────────────────────────── -->
+<div class="phases">
+  <button class="phase-btn active" data-phase="1">Phase 1 — Validate</button>
+  <button class="phase-btn"        data-phase="2">Phase 2 — Launch</button>
+  <button class="phase-btn"        data-phase="3">Phase 3 — Scale</button>
+</div>
+
+<!-- ── Workspace ──────────────────────────────────────────── -->
+<div class="workspace">
+
+  <!-- Left: Inputs -->
+  <div class="inputs-col">
+    <p class="col-label">Configuration</p>
+
+    <div class="input-group">
+      <div class="ig-head">
+        <span class="ig-label">Ticket price</span>
+        <span class="ig-val" id="d-ticket">€800</span>
+      </div>
+      <div class="slider-row">
+        <input type="range" id="s-ticket" min="400" max="2000" step="50" value="800">
+        <input type="number" class="num-input" id="n-ticket" min="400" max="2000" step="50" value="800">
+      </div>
+    </div>
+
+    <div class="input-group">
+      <div class="ig-head">
+        <span class="ig-label">Guests per retreat</span>
+        <span class="ig-val" id="d-guests">10</span>
+      </div>
+      <div class="slider-row">
+        <input type="range" id="s-guests" min="8" max="16" step="1" value="10">
+        <input type="number" class="num-input" id="n-guests" min="8" max="16" step="1" value="10">
+      </div>
+    </div>
+
+    <div class="input-group">
+      <div class="ig-head">
+        <span class="ig-label">Retreats per year</span>
+        <span class="ig-val" id="d-retreats">2</span>
+      </div>
+      <div class="slider-row">
+        <input type="range" id="s-retreats" min="1" max="8" step="1" value="2">
+        <input type="number" class="num-input" id="n-retreats" min="1" max="8" step="1" value="2">
+      </div>
+    </div>
+
+    <div class="input-group">
+      <div class="ig-head">
+        <span class="ig-label">Network cost reduction</span>
+        <span class="ig-val" id="d-favor">45%</span>
+      </div>
+      <div class="slider-row">
+        <input type="range" id="s-favor" min="0" max="60" step="1" value="45">
+        <input type="number" class="num-input" id="n-favor" min="0" max="60" step="1" value="45">
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="input-group">
+      <div class="ig-head"><span class="ig-label">Annual partnership revenue</span></div>
+      <div class="cur-wrap">
+        <span class="cur-pre">€</span>
+        <input type="number" class="cur-input" id="n-partner" min="0" step="500" value="0" placeholder="0">
+      </div>
+    </div>
+
+    <div class="input-group">
+      <div class="ig-head"><span class="ig-label">Fixed annual overhead</span></div>
+      <div class="cur-wrap">
+        <span class="cur-pre">€</span>
+        <input type="number" class="cur-input" id="n-overhead" min="0" step="100" value="5200" placeholder="5200">
+      </div>
+    </div>
+
+    <div class="input-group">
+      <div class="ig-head"><span class="ig-label">Target founder income / year</span></div>
+      <div class="cur-wrap">
+        <span class="cur-pre">€</span>
+        <input type="number" class="cur-input" id="n-target" min="0" step="1000" value="15000" placeholder="15000">
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Outputs -->
+  <div class="output-col">
+    <p class="col-label">Live projections</p>
+    <div class="metrics-grid">
+
+      <div class="mc">
+        <div class="mc-label">Revenue / retreat</div>
+        <div class="mc-value" id="m-revPerRetreat">—</div>
+      </div>
+
+      <div class="mc">
+        <div class="mc-label">Cost / retreat</div>
+        <div class="mc-value" id="m-costPerRetreat">—</div>
+        <div class="mc-sub"  id="m-costSub"></div>
+      </div>
+
+      <div class="mc">
+        <div class="mc-label">Contribution / retreat</div>
+        <div class="mc-value" id="m-contrib">—</div>
+      </div>
+
+      <div class="mc">
+        <div class="mc-label">Contribution margin</div>
+        <div class="mc-value" id="m-margin">—</div>
+      </div>
+
+      <div class="mc">
+        <div class="mc-label">Annual gross revenue</div>
+        <div class="mc-value" id="m-annualGross">—</div>
+      </div>
+
+      <div class="mc">
+        <div class="mc-label">Min. retreats to target</div>
+        <div class="mc-value" id="m-minRetreats">—</div>
+        <div class="mc-sub"  id="m-minSub"></div>
+      </div>
+
+      <div class="mc wide" id="m-netCard">
+        <div class="mc-label">Annual net contribution</div>
+        <div class="mc-value" id="m-annualNet">—</div>
+        <div class="mc-sub"  id="m-netSub"></div>
+      </div>
+
+      <div class="mc">
+        <div class="mc-label">LTV estimate</div>
+        <div class="mc-value" id="m-ltv">—</div>
+        <div class="mc-sub">ticket × 1.5 attendance × 1.8 referrals</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── Cost breakdown table ────────────────────────────────── -->
+<div class="cost-section">
+  <p class="cost-section-title">Cost breakdown — per retreat</p>
+  <table class="cost-table">
+    <thead>
+      <tr>
+        <th>Cost line</th>
+        <th class="r">Market rate</th>
+        <th class="r">With network favors</th>
+        <th class="td-bar"></th>
+      </tr>
+    </thead>
+    <tbody id="cost-body"></tbody>
+    <tfoot>
+      <tr>
+        <td class="td-name">Total</td>
+        <td class="td-market" id="t-market">€6,620</td>
+        <td class="td-favors" id="t-favors">—</td>
+        <td class="td-bar"></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── Data ──────────────────────────────────────────────────
+  const COST_LINES = [
+    { name: 'Venue hire (3 nights)',   market: 2160 },
+    { name: 'Food & beverage',          market: 1620 },
+    { name: 'Activities & excursions',  market:  820 },
+    { name: 'Photography / content',    market:  400 },
+    { name: 'Facilitator / speaker',    market:  700 },
+    { name: 'Transport & operations',   market:  920 },
+  ];
+  const MARKET_TOTAL = COST_LINES.reduce((s, c) => s + c.market, 0); // 6620
+
+  const PHASES = {
+    1: { ticket: 800,  guests: 10, retreats: 2, favor: 45, partner: 0,    overhead: 5200, target: 15000 },
+    2: { ticket: 950,  guests: 12, retreats: 4, favor: 25, partner: 0,    overhead: 5200, target: 25000 },
+    3: { ticket: 1100, guests: 14, retreats: 5, favor: 10, partner: 8000, overhead: 5200, target: 35000 },
+  };
+
+  // ── Helpers ───────────────────────────────────────────────
+  const $ = id => document.getElementById(id);
+  const fmt = n => '€' + Math.round(n).toLocaleString('en-GB');
+  const fmtPct = n => (Math.round(n * 10) / 10).toFixed(1) + '%';
+
+  function updateSliderFill(el) {
+    const pct = ((+el.value - +el.min) / (+el.max - +el.min)) * 100;
+    el.style.background =
+      `linear-gradient(to right, #1A1A1A ${pct}%, #E0DDD8 ${pct}%)`;
+  }
+
+  // ── Read inputs ───────────────────────────────────────────
+  function vals() {
+    return {
+      ticket:   +$('n-ticket').value   || 0,
+      guests:   +$('n-guests').value   || 0,
+      retreats: +$('n-retreats').value || 0,
+      favor:    +$('n-favor').value    || 0,
+      partner:  +$('n-partner').value  || 0,
+      overhead: +$('n-overhead').value || 0,
+      target:   +$('n-target').value   || 0,
+    };
+  }
+
+  // ── Calculate & render ────────────────────────────────────
+  function calculate() {
+    const v = vals();
+    const favorMult = 1 - v.favor / 100;
+
+    const revPerRetreat  = v.guests * v.ticket;
+    const costPerRetreat = MARKET_TOTAL * favorMult;
+    const contrib        = revPerRetreat - costPerRetreat;
+    const marginPct      = revPerRetreat > 0 ? (contrib / revPerRetreat) * 100 : 0;
+    const annualGross    = revPerRetreat * v.retreats;
+    const annualNet      = annualGross - (costPerRetreat * v.retreats) - v.overhead + v.partner;
+    const ltv            = v.ticket * 1.5 * 1.8;
+
+    // Min retreats to hit income target
+    let minTxt = '—', minSub = '';
+    if (contrib > 0) {
+      const raw = (v.target + v.overhead - v.partner) / contrib;
+      if (raw <= 0) {
+        minTxt = '0';
+        minSub = 'Partnership revenue covers target';
+      } else {
+        const n = Math.ceil(raw);
+        minTxt = n.toString();
+        if (n <= v.retreats) {
+          minSub = 'Achievable at current plan';
+        } else {
+          const extra = n - v.retreats;
+          minSub = extra + ' more retreat' + (extra > 1 ? 's' : '') + ' than planned';
+        }
+      }
+    } else {
+      minSub = contrib < 0 ? 'Costs exceed revenue' : 'No contribution margin';
+    }
+
+    // Net card status
+    const card = $('m-netCard');
+    card.className = 'mc wide';
+    let netSub = '';
+    if (v.target > 0) {
+      if (annualNet >= v.target) {
+        card.classList.add('s-green');
+        netSub = fmt(annualNet - v.target) + ' above target';
+      } else if (annualNet >= v.target * 0.8) {
+        card.classList.add('s-amber');
+        netSub = fmt(v.target - annualNet) + ' below target (within 20%)';
+      } else {
+        card.classList.add('s-red');
+        netSub = fmt(v.target - annualNet) + ' below target';
+      }
+    }
+
+    // Update metric cards
+    $('m-revPerRetreat').textContent  = fmt(revPerRetreat);
+    $('m-costPerRetreat').textContent = fmt(costPerRetreat);
+    $('m-costSub').textContent        = v.favor + '% reduction applied';
+    $('m-contrib').textContent        = fmt(contrib);
+    $('m-margin').textContent         = fmtPct(marginPct);
+    $('m-annualGross').textContent    = fmt(annualGross);
+    $('m-minRetreats').textContent    = minTxt;
+    $('m-minSub').textContent         = minSub;
+    $('m-annualNet').textContent      = fmt(annualNet);
+    $('m-netSub').textContent         = netSub;
+    $('m-ltv').textContent            = fmt(ltv);
+
+    // Update cost table
+    const tbody = $('cost-body');
+    tbody.innerHTML = '';
+    let totalFavors = 0;
+    COST_LINES.forEach(c => {
+      const withFavors = c.market * favorMult;
+      totalFavors += withFavors;
+      const paidPct = (1 - v.favor / 100) * 100;
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        `<td class="td-name">${c.name}</td>` +
+        `<td class="td-market">${fmt(c.market)}</td>` +
+        `<td class="td-favors">${fmt(withFavors)}</td>` +
+        `<td class="td-bar">` +
+          `<div class="bar-track"><div class="bar-fill" style="width:${paidPct.toFixed(1)}%"></div></div>` +
+          `<div class="bar-note">${v.favor > 0 ? '−' + v.favor + '% vs market' : 'Full market rate'}</div>` +
+        `</td>`;
+      tbody.appendChild(tr);
+    });
+    $('t-market').textContent = fmt(MARKET_TOTAL);
+    $('t-favors').textContent = fmt(totalFavors);
+  }
+
+  // ── Slider ↔ number sync ──────────────────────────────────
+  const SLIDER_CONFIGS = [
+    // [sliderId, numId, displayId, displayFn]
+    ['s-ticket',  'n-ticket',   'd-ticket',   v => '€' + Math.round(v).toLocaleString('en-GB')],
+    ['s-guests',  'n-guests',   'd-guests',   v => v.toString()],
+    ['s-retreats','n-retreats', 'd-retreats', v => v.toString()],
+    ['s-favor',   'n-favor',    'd-favor',    v => v + '%'],
+  ];
+
+  SLIDER_CONFIGS.forEach(([sid, nid, did, dfn]) => {
+    const sl = $(sid), nu = $(nid), di = $(did);
+
+    function sync(from, raw) {
+      const v = Math.min(Math.max(+raw, +sl.min), +sl.max);
+      if (from !== 'slider') sl.value = v;
+      if (from !== 'num')    nu.value = v;
+      di.textContent = dfn(v);
+      updateSliderFill(sl);
+      calculate();
+    }
+
+    sl.addEventListener('input', () => sync('slider', sl.value));
+    nu.addEventListener('input', () => sync('num', nu.value));
+    nu.addEventListener('change', () => {
+      const clamped = Math.min(Math.max(+nu.value, +sl.min), +sl.max);
+      nu.value = clamped;
+      sync('num', clamped);
+    });
+
+    updateSliderFill(sl);
+  });
+
+  // ── Standalone currency inputs ────────────────────────────
+  ['n-partner', 'n-overhead', 'n-target'].forEach(id => {
+    $(id).addEventListener('input', calculate);
+    $(id).addEventListener('change', calculate);
+  });
+
+  // ── Phase switcher ────────────────────────────────────────
+  document.querySelectorAll('.phase-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.phase-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const p = PHASES[btn.dataset.phase];
+
+      function setSlider(sid, nid, did, dfn, val) {
+        $(sid).value = val; $(nid).value = val;
+        $(did).textContent = dfn(val);
+        updateSliderFill($(sid));
+      }
+
+      setSlider('s-ticket',   'n-ticket',   'd-ticket',   v => '€' + v.toLocaleString('en-GB'), p.ticket);
+      setSlider('s-guests',   'n-guests',   'd-guests',   v => v.toString(), p.guests);
+      setSlider('s-retreats', 'n-retreats', 'd-retreats', v => v.toString(), p.retreats);
+      setSlider('s-favor',    'n-favor',    'd-favor',    v => v + '%', p.favor);
+
+      $('n-partner').value  = p.partner;
+      $('n-overhead').value = p.overhead;
+      $('n-target').value   = p.target;
+
+      calculate();
+    });
+  });
+
+  // ── Initial render ────────────────────────────────────────
+  calculate();
+
+}());
+</script>
+</body>
+</html>
